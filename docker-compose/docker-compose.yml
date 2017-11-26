@@ -1,0 +1,74 @@
+lb:
+        image: nginx:alpine
+        ports:
+                - "80:80"
+        links:
+                - tomcat1:tomcat1
+                - tomcat2:tomcat2
+        volumes:
+                - ./nginx.conf:/etc/nginx/conf.d/default.conf
+        restart: always
+
+
+db:
+        image: mysql:5.7.20
+        volumes:
+                - /db:/var/lib/mysql
+        restart: always
+        environment:
+                MYSQL_ROOT_PASSWORD: rootpassword
+                MYSQL_DATABASE: todolist
+                MYSQL_USER: todolist_web
+                MYSQL_PASSWORD: todolist_web
+
+redis-session:
+        image: redis:3.2
+        volumes:
+                - ./redis.conf:/etc/redis/redis.conf
+        command: redis-server /etc/redis/redis.conf
+
+tomcat1:
+        image: tomcat:8.5.23
+        volumes:
+                - ./webapps:/usr/local/tomcat/webapps
+                - ./tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml
+        environment:
+            # database configuration
+            SPRING_DATASOURCE_URL: jdbc:mysql://db/todolist
+            SPRING_DATASOURCE_USERNAME: todolist_web
+            SPRING_DATASOURCE_PASSWORD: todolist_web
+            SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.jdbc.Driver
+            SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL5Dialect
+
+            # redis configuration
+            SPRING_REDIS_HOST: redis-session
+            SPRING_REDIS_PASSWORD: secret
+            SPRING_REDIS_PORT: 6379
+
+        restart: always
+        links:
+          - db:db
+          - redis-session:redis-session
+
+tomcat2:
+        image: tomcat:8.5.23
+        volumes:
+                - ./webapps:/usr/local/tomcat/webapps
+                - ./tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml
+        environment:
+            # database configuration
+            SPRING_DATASOURCE_URL: jdbc:mysql://db/todolist
+            SPRING_DATASOURCE_USERNAME: todolist_web
+            SPRING_DATASOURCE_PASSWORD: todolist_web
+            SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.jdbc.Driver
+            SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL5Dialect
+
+            # redis configuration
+            SPRING_REDIS_HOST: redis-session
+            SPRING_REDIS_PASSWORD: secret
+            SPRING_REDIS_PORT: 6379
+
+        restart: always
+        links:
+          - db:db
+          - redis-session:redis-session
