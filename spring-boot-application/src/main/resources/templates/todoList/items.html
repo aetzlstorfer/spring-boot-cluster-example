@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <title>my Todo List</title>
+</head>
+<body>
+<h1 th:inline="text">Hello [[${#httpServletRequest.remoteUser}]]!</h1>
+<form th:action="@{/logout}" method="post">
+    <input type="submit" value="Sign Out"/>
+</form>
+
+<div>
+    <p th:each="entry : ${entries}">
+        <input type="checkbox" th:checked="${entry.done}"/>
+        <span th:text="${entry.title}">todo list entry title</span>
+        <a th:href="@{'/todoList/items/' + ${entry.id} + '/remove'}">
+            remove
+        </a>
+
+        <a th:href="@{'/todoList/items/' + ${entry.id} + '/done'}">
+            done
+        </a>
+    </p>
+</div>
+
+<form th:action="@{/todoList/createItem}" method="post">
+    <input name="title"/>
+    <input type="submit" value="Add"/>
+</form>
+
+</body>
+</html>
